@@ -47,6 +47,13 @@ module.exports = class SermonManager extends BaseManager {
         var errors = {};
         return new Promise((resolve, reject) => {
             var valid = sermon;
+
+            if (valid.duration > 0) {
+                valid.second = valid.duration % 60;
+                valid.minute = (valid.duration - valid.second) / 60; 
+            }
+            else
+                valid.duration = valid.minute * 60 + valid.second;
             // 1. begin: Declare promises. 
 
             if (!valid.title || valid.title == '')
@@ -54,6 +61,14 @@ module.exports = class SermonManager extends BaseManager {
 
             if (!valid.artist || valid.artist == '')
                 errors["artist"] = "artist is required";
+
+            if (Number.isInteger(parseInt(valid.minute, 10)) === false)
+                errors["minute"] = "minute should be a number";
+
+            if (Number.isInteger(parseInt(valid.second, 10)) === false)
+                errors["second"] = "duration should be a number";
+            else if (valid.second > 60 || valid.second < 0)
+                errors["second"] = "second should be between 0 - 60";
 
             if (Number.isInteger(parseInt(valid.duration, 10)) === false)
                 errors["duration"] = "duration should be a number in seconds";
@@ -73,6 +88,7 @@ module.exports = class SermonManager extends BaseManager {
                 reject(new ValidationError('data does not pass validation', errors));
             }
 
+
             valid = new Sermon(sermon);
             valid.stamp(this.user.username, 'manager');
             resolve(valid);
@@ -89,5 +105,26 @@ module.exports = class SermonManager extends BaseManager {
         };
 
         return this.collection.createIndexes([defaultIndex]);
+    }
+
+    reconcile() {
+        return new Promise((resolve, reject) => {
+            var updates = [];
+            this.collection
+                .find({})
+                .forEach(sermon => {
+                    var data = sermon;
+                    data.second = data.duration % 60;
+                    data.minute = (data.duration - data.second) / 60;
+                    updates.push(this.update(data));
+                });
+            Promise.all(updates)
+                .then(results => {
+                    resolve(true);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
     }
 };
