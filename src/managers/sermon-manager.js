@@ -117,13 +117,15 @@ module.exports = class SermonManager extends BaseManager {
                     data.second = data.duration % 60;
                     data.minute = (data.duration - data.second) / 60;
                     updates.push(this.update(data));
-                });
-            Promise.all(updates)
-                .then(results => {
-                    resolve(results.length);
-                })
-                .catch(e => {
-                    reject(e);
+                }, (e) => {
+
+                    Promise.all(updates)
+                        .then(results => {
+                            resolve(results.length);
+                        })
+                        .catch(e => {
+                            reject(e);
+                        });
                 });
         });
     }
