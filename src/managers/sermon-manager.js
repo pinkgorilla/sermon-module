@@ -50,7 +50,7 @@ module.exports = class SermonManager extends BaseManager {
 
             if (valid.duration > 0) {
                 valid.second = valid.duration % 60;
-                valid.minute = (valid.duration - valid.second) / 60; 
+                valid.minute = (valid.duration - valid.second) / 60;
             }
             else
                 valid.duration = valid.minute * 60 + valid.second;
@@ -120,7 +120,7 @@ module.exports = class SermonManager extends BaseManager {
                 });
             Promise.all(updates)
                 .then(results => {
-                    resolve(true);
+                    resolve(results.length);
                 })
                 .catch(e => {
                     reject(e);
